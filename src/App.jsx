@@ -3,120 +3,153 @@ import "./App.css";
 
 function App() {
   const [text, setText] = useState("");
-  const [array, setArray] = useState([]);
-  const [Active, SetActive] = useState("All");
-  const [filtered, setFiltered] = useState(array);
+  const [task, setTask] = useState([]);
+  const [active, setActive] = useState("All");
+  const [filteredTasks, setFilteredTasks] = useState([]);
 
   useEffect(() => {
-    if (Active === "All") {
-      setFiltered(array);
-    } else if (Active === "Active") {
-      setFiltered(array.filter((cur) => cur.done === false));
-    } else if (Active === "Completed") {
-      setFiltered(array.filter((cur) => cur.done === true));
+    if (active === "All") {
+      setFilteredTasks(task);
+    } else if (active === "Active") {
+      setFilteredTasks(task.filter((cur) => cur.done === false));
+    } else if (active === "Complete") {
+      setFilteredTasks(task.filter((cur) => cur.done === true));
     }
-  }, [array, Active]);
+  }, [task, active]);
 
-  function handleAdd() {
-    if (text !== "") {
-      setArray([...array, { id: Date.now(), text: text, done: false }]);
+  function Add() {
+    if (text.trim() !== "") {
+      setTask([...task, { text: text, done: false }]);
       setText("");
+      setFilteredTasks([...task, { text: text, done: false }]);
+    } else {
+      alert("Please enter a task!");
     }
   }
-  function HandleDelete(id) {
-    const filtered = array.filter((item) => item.id !== id);
-    setArray(filtered);
+  function Delete(index) {
+    const isConfirm = confirm("Are you sure ");
+    if (isConfirm) {
+      const filtered = task.filter(
+        (item, filterIndex) => filterIndex !== index
+      );
+      setTask(filtered);
+      setFilteredTasks(filtered);
+    }
+  }
+  function ClearComp() {
+    const isConfirm = confirm(
+      "Are you sure you want to clear all completed tasks?"
+    );
+    if (isConfirm) {
+      const filtered = task.filter((cur) => cur.done === false);
+      setTask(filtered);
+      setFilteredTasks(filtered);
+    }
+  }
+  function toggleDone(index) {
+    const newTasks = [...task];
+    newTasks[index].done = !newTasks[index].done;
+    setTask(newTasks);
+    setFilteredTasks(newTasks);
   }
 
   return (
-    <>
-      <h2 className="todoWriting">To do list</h2>
-      <div className="newBtns">
-        <input
-          onKeyDown={(e) => {
-            console.log(e.key);
-            if (e.key === "Enter") {
-              handleAdd();
-            }
-          }}
-          className="input"
-          onChange={(e) => setText(e.target.value)}
-          value={text}
-          placeholder="Add a new task..."
-        />
-
-        <button className="Addbtn inter" onClick={handleAdd}>
-          add
-        </button>
-      </div>
-      <div className="sortbtns btn">
-        <button
-          className={Active === "All" ? "button active" : "button"}
-          onClick={function () {
-            SetActive("All");
-          }}
-        >
-          All
-        </button>
-        <button
-          className={Active === "Active" ? "button active" : "button"}
-          onClick={function () {
-            SetActive("Active");
-          }}
-        >
-          Active
-        </button>
-        <button
-          className={Active === "Completed" ? "button active" : "button"}
-          onClick={function () {
-            SetActive("Completed");
-          }}
-        >
-          Completed
-        </button>
-      </div>
-      {filtered.length === 0 && (
-        <div className="NotaskWriting">No tasks yet. Add one above!</div>
-      )}
-      {filtered.map((cur) => {
-        return (
-          <div key={cur.id}>
-            <div className="todo row">
-              <input
-                type="checkbox"
-                checked={cur.done}
-                onChange={() => {
-                  const newArray = array.map((item) =>
-                    item.id === cur.id ? { ...item, done: !item.done } : item
-                  );
-                  setArray(newArray);
-                }}
-              />
-              <div className={cur.done ? "strikethrough" : ""}>{cur.text}</div>
-              <button
-                className="deleteBtn"
-                onClick={() => HandleDelete(cur.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        );
-      })}
-      {array.length > 0 && (
-        <div className="footer">
-          {array.filter((item) => item.done).length} of {array.length} tasks
-          completed
-          <button
-            className="clearbtn"
-            onClick={() => setArray(array.filter((item) => !item.done))}
-          >
-            Clear Completed
+    <div className="container">
+      <div className="container4">
+        <div className="title">To-Do list</div>
+        <div className="container2">
+          <input
+            type="text"
+            onChange={(e) => setText(e.target.value)}
+            value={text}
+            placeholder="Add a new task..."
+            className="input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                Add();
+              }
+            }}
+          />
+          <button onClick={Add} className="addbtn">
+            Add
           </button>
         </div>
-      )}
-    </>
+
+        <div className="container3">
+          <button
+            className={active === "All" ? "button active" : "button"}
+            onClick={function () {
+              setActive("All");
+            }}
+          >
+            All
+          </button>
+          <button
+            className={active === "Active" ? "button active" : "button"}
+            onClick={function () {
+              setActive("Active");
+            }}
+          >
+            Active
+          </button>
+          <button
+            className={active === "Complete" ? "button active" : "button"}
+            onClick={function () {
+              setActive("Complete");
+            }}
+          >
+            Completed
+          </button>
+        </div>
+
+        <div>
+          {filteredTasks.map((oneTask) => {
+            const realIndex = task.indexOf(oneTask);
+            return (
+              <div className="taskcont" key={realIndex}>
+                <p
+                  style={{
+                    textDecoration: oneTask.done ? "line-through" : "none",
+                  }}
+                  className="text"
+                >
+                  <input
+                    className="checkbox"
+                    type="checkbox"
+                    checked={oneTask.done}
+                    onChange={() => toggleDone(realIndex)}
+                  />
+                  {oneTask.text}
+                </p>
+                <button onClick={() => Delete(realIndex)} className="delete">
+                  Delete
+                </button>
+              </div>
+            );
+          })}{" "}
+          {filteredTasks.length === 0 && (
+            <div className="notask">No tasks yet. Add one above!</div>
+          )}
+        </div>
+        {task.length > 0 && (
+          <div className="resultcont">
+            <div className="notask">
+              {task.filter((cur) => cur.done === true).length} of {task.length}{" "}
+              tasks completed
+            </div>
+            <button onClick={ClearComp} className="clearcomp">
+              Clear Completed
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="footer">
+        <p className="notask">Powered by</p>
+        <p className="notask" id="pinecone">
+          Pinecone academy
+        </p>
+      </div>
+    </div>
   );
 }
-
 export default App;
